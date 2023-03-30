@@ -17,6 +17,7 @@ import torch.optim as optim
 from discreteaction_pendulum import Pendulum
 from dqn.dqn import DQN
 from dqn.replay import ReplayMemory, Transition
+from dqn.utils import generate_trajectory
 
 
 BATCH_SIZE = 128
@@ -186,9 +187,10 @@ for i_episode in range(num_episodes):
 
         if done:
             episode_durations.append(t + 1)
-            plot_durations()
             break
 
 print("Complete")
-plot_durations(show_result=False)
-plt.show()
+
+traj_filename: str = "figures/traj_w_rep_w_target.png"
+video_filename: str = "figures/video_w_rep_w_target.gif"
+generate_trajectory(env, policy_net, traj_filename, video_filename, device)
