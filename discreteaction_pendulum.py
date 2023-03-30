@@ -1,6 +1,7 @@
-from typing import Generator, TypedDict
+from typing import Any, Generator, TypedDict
 from matplotlib.axes import Axes
 import numpy as np
+from numpy import ndarray
 import scipy.integrate
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -40,9 +41,9 @@ class Pendulum:
 
         # Random number generator
         if rg is None:
-            self.rg = np.random.default_rng()
+            self.rg: Generator = np.random.default_rng()
         else:
-            self.rg = rg
+            self.rg: Generator = rg
 
         # Number of states (the state space is continuous, so "number of states"
         # means the dimension of this continuous space)
@@ -58,13 +59,13 @@ class Pendulum:
         # Reset to initial conditions
         self.reset()
 
-    def _x_to_s(self, x):
+    def _x_to_s(self, x: list[int]) -> ndarray:
         return np.array([((x[0] + np.pi) % (2 * np.pi)) - np.pi, x[1]])
 
-    def _a_to_u(self, a):
+    def _a_to_u(self, a: int) -> float:
         return -self.max_tau + ((2 * self.max_tau * a) / (self.num_actions - 1))
 
-    def _dxdt(self, x, u):
+    def _dxdt(self, x: list[int], u: float) -> ndarray:
         theta_ddot = (
             u
             - self.params["b"] * x[1]
@@ -75,7 +76,7 @@ class Pendulum:
     def set_rg(self, rg):
         self.rg = rg
 
-    def step(self, a):
+    def step(self, a: int) -> tuple[ndarray, float, bool]:
         # Verify action is in range
         if not (a in range(self.num_actions)):
             raise ValueError(f"invalid action {a}")
@@ -99,6 +100,7 @@ class Pendulum:
         theta = self.s[0]
         thetadot = self.s[1]
 
+        r: float
         # Compute reward
         if abs(thetadot) > self.max_thetadot:
             # If constraints are violated, then return large negative reward
@@ -112,11 +114,11 @@ class Pendulum:
 
         # Increment number of steps and check for end of episode
         self.num_steps += 1
-        done = self.num_steps >= self.max_num_steps
+        done: bool = self.num_steps >= self.max_num_steps
 
         return (self.s, r, done)
 
-    def reset(self):
+    def reset(self) -> ndarray:
         # Sample theta and thetadot
         self.x = self.rg.uniform(
             [-np.pi, -self.max_thetadot_for_init], [np.pi, self.max_thetadot_for_init]
@@ -126,7 +128,7 @@ class Pendulum:
         self.s = self._x_to_s(self.x)
 
         # Reset current time (expressed as number of simulation steps taken so far) to zero
-        self.num_steps = 0
+        self.num_steps: int = 0
 
         return self.s
 
