@@ -2,12 +2,14 @@ from collections import deque
 import random
 from typing import NamedTuple
 
+from torch import Tensor
+
 
 class Transition(NamedTuple):
-    state: object
-    action: object
-    reward: float
-    next_state: object
+    state: Tensor | tuple[Tensor, ...] | None
+    action: Tensor | tuple[Tensor, ...]
+    reward: float | tuple[Tensor, ...] | Tensor
+    next_state: Tensor | tuple[Tensor, ...] | None
 
 
 class ReplayMemory(object):
