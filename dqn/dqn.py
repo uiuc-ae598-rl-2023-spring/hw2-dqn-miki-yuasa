@@ -9,7 +9,7 @@ class DQN(nn.Module):
         self.layer2 = nn.Linear(64, 64)
         self.layer3 = nn.Linear(64, n_actions)
 
-    def forward(self, x: Tensor):
+    def forward(self, x: Tensor) -> Tensor:
         x = nn.functional.tanh(self.layer1(x))
         x = nn.functional.tanh(self.layer2(x))
         x = self.layer3(x)
