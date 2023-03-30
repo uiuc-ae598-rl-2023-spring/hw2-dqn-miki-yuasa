@@ -15,7 +15,7 @@ class ParamDict(TypedDict):
 
 
 class Pendulum:
-    def __init__(self, rg=None | Generator, num_actions: int = 31):
+    def __init__(self, rg: None | Generator = None, num_actions: int = 31):
         # Parameters that describe the physical system
         self.params: ParamDict = {
             "m": 1.0,  # mass
@@ -41,9 +41,9 @@ class Pendulum:
 
         # Random number generator
         if rg is None:
-            self.rg: Generator = np.random.default_rng()
+            self.rg = np.random.default_rng()
         else:
-            self.rg: Generator = rg
+            self.rg = rg
 
         # Number of states (the state space is continuous, so "number of states"
         # means the dimension of this continuous space)
