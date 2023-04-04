@@ -108,4 +108,4 @@ ax.set_ylabel("Episodic Reward [-]")
 ax.legend()
 plt.savefig("figures/learning_curve_ablation.png", dpi=600)
 with open("figures/learning_curve_ablation.pkl", "wb") as f:
-    pickle.dump(learning_curves, f)
+    pickle.dump([learning_curves, averaged_episodic_rewards], f)
