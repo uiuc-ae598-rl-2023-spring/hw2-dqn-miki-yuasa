@@ -1,7 +1,9 @@
 from itertools import count
+import pickle
 import random, math
 from matplotlib import pyplot as plt
 
+import numpy as np
 from numpy import ndarray
 import torch
 from torch import Tensor, nn, optim
@@ -109,9 +111,9 @@ def train(
     BATCH_SIZE: int,
     TAU: float,
     LR: float,
-    model_path: str,
-    learning_curve_plot_path: str,
-) -> DQN:
+    with_target_net: bool = True,
+    with_replay_memory: bool = True,
+) -> tuple[DQN, list[float]]:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     n_actions: int = env.num_actions
@@ -121,7 +123,9 @@ def train(
     target_net = DQN(n_observations, n_actions).to(device)
     target_net.load_state_dict(policy_net.state_dict())
     optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
-    memory = ReplayMemory(memory_buffer)
+    memory = (
+        ReplayMemory(memory_buffer) if with_replay_memory else ReplayMemory(BATCH_SIZE)
+    )
 
     episodic_rewards: list[float] = []
     for i_episode in range(num_episodes):
@@ -173,11 +177,15 @@ def train(
             # θ′ ← τ θ + (1 −τ )θ′
             target_net_state_dict = target_net.state_dict()
             policy_net_state_dict = policy_net.state_dict()
-            for key in policy_net_state_dict:
-                target_net_state_dict[key] = policy_net_state_dict[
-                    key
-                ] * TAU + target_net_state_dict[key] * (1 - TAU)
-            target_net.load_state_dict(target_net_state_dict)
+
+            if with_target_net:
+                for key in policy_net_state_dict:
+                    target_net_state_dict[key] = policy_net_state_dict[
+                        key
+                    ] * TAU + target_net_state_dict[key] * (1 - TAU)
+                target_net.load_state_dict(target_net_state_dict)
+            else:
+                target_net.load_state_dict(policy_net_state_dict)
 
             if done:
                 break
@@ -188,12 +196,29 @@ def train(
 
     print("Complete")
 
+    path_replay: str = "w" if with_replay_memory else "wo"
+    path_target: str = "w" if with_target_net else "wo"
+    file_suffix: str = f"{path_replay}_rep_{path_target}_target"
+
+    model_path: str = f"models/dqn_{file_suffix}.pt"
+    learning_curve_plot_path: str = f"figures/learning_curve_{file_suffix}.png"
+
     torch.save(policy_net.state_dict(), model_path)
 
-    ax, fig = plt.subplots()
-    plt.plot(episodic_rewards)
+    convolve_value: int = 10  # 100
+    fig, ax = plt.subplots()
+    plt.plot(
+        np.convolve(
+            episodic_rewards,
+            np.ones(convolve_value) / convolve_value,
+            mode="same",
+        ),
+    )
     plt.xlabel("Episode [-]")
-    plt.ylabel("Episodic reward [-]")
-    plt.savefig(learning_curve_plot_path)
+    plt.ylabel("Episodic Reward [-]")
+    plt.savefig(learning_curve_plot_path, dpi=600)
 
-    return policy_net
+    with open(learning_curve_plot_path.replace(".png", ".pkl"), "wb") as f:
+        pickle.dump(episodic_rewards, f)
+
+    return policy_net, episodic_rewards
