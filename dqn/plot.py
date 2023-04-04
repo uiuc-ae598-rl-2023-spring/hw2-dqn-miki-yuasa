@@ -29,7 +29,7 @@ class PolicyWrapper:
 
 class DataDict(TypedDict):
     t: list[int]
-    s: list[ndarray] |ndarray
+    s: list[ndarray] | ndarray
     a: list[int]
     r: list[float]
 
@@ -39,8 +39,8 @@ def generate_trajectory(
     policy: DQN,
     traj_filename: str,
     video_filename: str,
-    device: torch.device,
 ) -> None:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     wrapped_policy = PolicyWrapper(policy, device)
     env.video(wrapped_policy, filename=video_filename)
 
@@ -83,3 +83,30 @@ def generate_trajectory(
     ax[2].set_xlabel("time step")
     plt.tight_layout()
     plt.savefig(traj_filename)
+
+
+def plot_policy(policy_net: DQN, env: Pendulum, policy_plot_path: str) -> None:
+    policy = lambda s: np.argmax(policy_net(torch.Tensor(s)).detach().numpy())
+    theta = np.linspace(-np.pi, np.pi, 100)
+    theta_dot = np.linspace(-env.max_thetadot, env.max_thetadot, 100)
+    x_axis, y_axis = np.meshgrid(theta, theta_dot)
+
+    policy_array = np.zeros_like(x_axis)
+    for i in range(len(theta)):
+        for j in range(len(theta)):
+            s = np.array((x_axis[i, j], y_axis[i, j]))
+            policy_array[i, j] = policy(s)
+
+    V_array = np.zeros_like(x_axis)
+
+    for i in range(len(theta)):
+        for j in range(len(theta)):
+            s = np.array((x_axis[i, j], y_axis[i, j]))
+            V_array[i, j] = torch.max(policy_net(torch.from_numpy(s).float())).item()
+
+    plt.figure()
+    plt.pcolor(x_axis, y_axis, V_array)
+    plt.xlabel("theta")
+    plt.ylabel("theta dot")
+    plt.colorbar()
+    plt.savefig(policy_plot_path)
