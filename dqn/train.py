@@ -126,7 +126,7 @@ def train(
     episodic_rewards: list[float] = []
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
-        print(f"Episode {i_episode} of {num_episodes}")
+        print(f"Episode {i_episode+1} of {num_episodes}")
         state_np: ndarray = env.reset()
         state: Tensor = torch.tensor(
             state_np, dtype=torch.float32, device=device
