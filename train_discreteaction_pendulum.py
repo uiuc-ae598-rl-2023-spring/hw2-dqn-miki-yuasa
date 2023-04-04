@@ -25,7 +25,7 @@ EPS_DECAY = 1000
 TAU = 0.005
 LR = 1e-4
 
-num_episodes = 50000
+num_episodes = 20000
 memory_buffer_size: int = 10000
 num_ablation_episodes: int = 1000
 
