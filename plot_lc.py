@@ -3,6 +3,10 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 14
+plt.rcParams["figure.subplot.bottom"] = 0.15
+plt.rcParams["figure.subplot.left"] = 0.15
 with open("figures/learning_curve_ablation.pkl", "rb") as f:
     learning_curves = pickle.load(f)[0]
 
