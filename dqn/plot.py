@@ -58,7 +58,7 @@ def generate_trajectory(
     # Simulate until episode is done
     done = False
     while not done:
-        a = random.randrange(env.num_actions)
+        a = wrapped_policy(s)
         (s, r, done) = env.step(a)
         data["t"].append(data["t"][-1] + 1)
         data["s"].append(s)
