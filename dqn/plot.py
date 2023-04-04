@@ -114,11 +114,11 @@ def plot_policy_value(
     plt.xlabel(r"$\theta$")
     plt.ylabel(r"$\dot{\theta}$")
     plt.colorbar()
-    plt.savefig(policy_plot_path)
+    plt.savefig(policy_plot_path, dpi=600)
 
     plt.figure()
     plt.pcolor(x_axis, y_axis, V_array)
     plt.xlabel(r"$\theta$")
     plt.ylabel(r"$\dot{\theta}$")
     plt.colorbar()
-    plt.savefig(value_plot_path)
+    plt.savefig(value_plot_path, dpi=600)
