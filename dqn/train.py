@@ -205,7 +205,7 @@ def train(
 
     torch.save(policy_net.state_dict(), model_path)
 
-    convolve_value: int = 10  # 100
+    convolve_value: int = 200
     fig, ax = plt.subplots()
     plt.plot(
         np.convolve(

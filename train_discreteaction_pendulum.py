@@ -25,9 +25,9 @@ EPS_DECAY = 1000
 TAU = 0.005
 LR = 1e-4
 
-num_episodes = 20  # 50000
+num_episodes = 50000
 memory_buffer_size: int = 10000
-num_ablation_episodes: int = 10  # 1000
+num_ablation_episodes: int = 1000
 
 model_path: str = "models/dqn_w_rep_w_target.pt"
 learning_curve_path: str = "figures/learning_curve_w_rep_w_target.png"
@@ -97,8 +97,8 @@ print(averaged_episodic_rewards)
 fig, ax = plt.subplots()
 labels: list[str] = [
     "with replay and target",
-    "no replay",
     "no target",
+    "no replay",
     "no replay, no target",
 ]
 for learning_curve, label in zip(learning_curves, labels):
