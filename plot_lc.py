@@ -13,7 +13,7 @@ labels: list[str] = [
     "no replay",
     "no replay, no target",
 ]
-convolve_value: int = 200
+convolve_value: int = 1000
 
 for learning_curve, label in zip(learning_curves, labels):
     ax.plot(
