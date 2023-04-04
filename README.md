@@ -1,5 +1,7 @@
 # HW2 - DQN
 
+I reviewed revadap
+
 ## What to do
 
 ### Algorithms
