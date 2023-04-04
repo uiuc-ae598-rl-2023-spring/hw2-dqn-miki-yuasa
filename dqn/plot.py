@@ -85,8 +85,11 @@ def generate_trajectory(
     plt.savefig(traj_filename)
 
 
-def plot_policy(policy_net: DQN, env: Pendulum, policy_plot_path: str) -> None:
-    policy = lambda s: np.argmax(policy_net(torch.Tensor(s)).detach().numpy())
+def plot_policy_value(
+    policy_net: DQN, env: Pendulum, policy_plot_path: str, value_plot_path: str
+) -> None:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    policy = PolicyWrapper(policy_net, device)
     theta = np.linspace(-np.pi, np.pi, 100)
     theta_dot = np.linspace(-env.max_thetadot, env.max_thetadot, 100)
     x_axis, y_axis = np.meshgrid(theta, theta_dot)
@@ -102,11 +105,20 @@ def plot_policy(policy_net: DQN, env: Pendulum, policy_plot_path: str) -> None:
     for i in range(len(theta)):
         for j in range(len(theta)):
             s = np.array((x_axis[i, j], y_axis[i, j]))
-            V_array[i, j] = torch.max(policy_net(torch.from_numpy(s).float())).item()
+            V_array[i, j] = torch.max(
+                policy_net(torch.tensor(s, device=device).float())
+            ).item()
+
+    plt.figure()
+    plt.pcolor(x_axis, y_axis, policy_array)
+    plt.xlabel(r"$\theta$")
+    plt.ylabel(r"$\dot{\theta}$")
+    plt.colorbar()
+    plt.savefig(policy_plot_path)
 
     plt.figure()
     plt.pcolor(x_axis, y_axis, V_array)
-    plt.xlabel("theta")
-    plt.ylabel("theta dot")
+    plt.xlabel(r"$\theta$")
+    plt.ylabel(r"$\dot{\theta}$")
     plt.colorbar()
-    plt.savefig(policy_plot_path)
+    plt.savefig(value_plot_path)
