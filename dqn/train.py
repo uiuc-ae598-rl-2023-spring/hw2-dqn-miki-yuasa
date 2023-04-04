@@ -1,10 +1,10 @@
 from itertools import count
 import random, math
+from matplotlib import pyplot as plt
 
 from numpy import ndarray
 import torch
-from torch import Tensor
-from torch import nn
+from torch import Tensor, nn, optim
 
 from discreteaction_pendulum import Pendulum
 from dqn.dqn import DQN
@@ -102,18 +102,28 @@ def train(
     num_episodes: int,
     env: Pendulum,
     memory_buffer: int,
-    device: torch.device,
-    TAU: float,
+    GAMMA: float,
     EPS_START: float,
     EPS_END: float,
     EPS_DECAY: float,
     BATCH_SIZE: int,
-    GAMMA: float,
-    policy_net: DQN,
-    target_net: DQN,
-    optimizer: torch.optim.AdamW,
-):
+    TAU: float,
+    LR: float,
+    model_path: str,
+    learning_curve_plot_path: str,
+) -> DQN:
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    n_actions: int = env.num_actions
+    n_observations: int = len(env.reset())
+
+    policy_net = DQN(n_observations, n_actions).to(device)
+    target_net = DQN(n_observations, n_actions).to(device)
+    target_net.load_state_dict(policy_net.state_dict())
+    optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
     memory = ReplayMemory(memory_buffer)
+
+    episodic_rewards: list[float] = []
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
         print(f"Episode {i_episode} of {num_episodes}")
@@ -123,6 +133,7 @@ def train(
         ).unsqueeze(0)
 
         steps_done: int = 0
+        episodic_reward: float = 0
         for t in count():
             action = select_action(
                 state,
@@ -136,6 +147,7 @@ def train(
             )
             observation, reward, done = env.step(action.item())
             reward = torch.tensor([reward], device=device)
+            episodic_reward += reward.item()
 
             if done:
                 next_state = None
@@ -172,4 +184,16 @@ def train(
             else:
                 pass
 
+        episodic_rewards.append(episodic_reward)
+
     print("Complete")
+
+    torch.save(policy_net.state_dict(), model_path)
+
+    ax, fig = plt.subplots()
+    plt.plot(episodic_rewards)
+    plt.xlabel("Episode [-]")
+    plt.ylabel("Episodic reward [-]")
+    plt.savefig(learning_curve_plot_path)
+
+    return policy_net
